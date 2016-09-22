@@ -38,5 +38,5 @@ void loadInstructions(const char* path);
 void printInstruction(const Instruction* i);
 void fetch(void);
 void execute(void);
-
+int base(int level, int bp);
 #endif

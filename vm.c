@@ -138,7 +138,7 @@ void execute(void) {
 			break;
 		case 5:
 			stack[sp+1] = 0;
-			stack[sp+2] = base(L, bp);
+			stack[sp+2] = base(ir.l, bp);
 			stack[sp+3] = bp;
 			stack[sp+4] = pc;
 			bp += 1;
@@ -162,7 +162,7 @@ void execute(void) {
 					break;
 				case 1:
 					sp += 1;
-					scanf("%d", stack[sp]);
+					scanf("%d", &stack[sp]);
 					break;
 				case 2:
 					exit(0);
@@ -174,4 +174,10 @@ void execute(void) {
 
 }
 
-
+int base(int level, int bp) {
+	while(level > 0) {
+		bp = stack[bp+1];
+		level--;
+	}
+	return bp;
+}
