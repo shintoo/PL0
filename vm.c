@@ -4,9 +4,14 @@
 #include <string.h>
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) usage(argv[0]);
+    
+	if (argc != 2) usage(argv[0]);
 
-    loadInstructions(argv[1]);
+	loadInstructions(argv[1]);
+	while(1) {
+		fetch();
+		execute();
+	}
 	return 0;
 }
 
@@ -16,6 +21,8 @@ void usage(const char *pname) {
 }
 
 void loadInstructions(const char* filePath) {
+   
+
     FILE *source = fopen(filePath, "r");
     char buf[32];
     char token[32];
@@ -27,10 +34,12 @@ void loadInstructions(const char* filePath) {
 
     for (i = 0; !feof(source) && i < MAX_CODE_LENGTH; i++) {
         fgets(buf, 32, source);
-        code[i].op = atoi(strtok(buf, " "));
+       	 
+	code[i].op = atoi(strtok(buf, " "));
         code[i].l = atoi(strtok(NULL, " "));
         code[i].m = atoi(strtok(NULL, " "));
-        printInstruction(code + i);
+        
+	printInstruction(code + i);
     }
 }
 
@@ -58,12 +67,14 @@ void printInstruction(const Instruction* i) {
     );
 }
 
-void fetch(void) {
+void fetch(void) {	
 	ir = code[pc];
 	pc += 1;
+
 }
 
 void execute(void) {
+	
 	switch(ir.op) {
 		case 1:
 			sp += 1;
@@ -104,27 +115,27 @@ void execute(void) {
 					break;
 				case 8:
 					sp -= 1;
-					stack[sp] = stack[sp] == stack[sp+1];
+					stack[sp] = (stack[sp] == stack[sp+1]);
 					break;
 				case 9:
 					sp -= 1;
-					stack[sp] = stack[sp] != stack[sp+1];
+					stack[sp] = (stack[sp] != stack[sp+1]);
 					break;
 				case 10:
 					sp -= 1;
-					stack[sp] = stack[sp] < stack[sp+1];
+					stack[sp] = (stack[sp] < stack[sp+1]);
 					break;
 				case 11:
 					sp -= 1;
-					stack[sp] = stack[sp] <= stack[sp+1];
+					stack[sp] = (stack[sp] <= stack[sp+1]);
 					break;
 				case 12:
 					sp -= 1;
-					stack[sp] = stack[sp] > stack[sp+1];
+					stack[sp] = (stack[sp] > stack[sp+1]);
 					break;
 				case 13:
 					sp -= 1;
-					stack[sp] = stack[sp] >= stack[sp+1];
+					stack[sp] = (stack[sp] >= stack[sp+1]);
 					break;
 			}
 
