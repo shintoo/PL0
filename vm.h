@@ -18,6 +18,7 @@ typedef struct _instruction {
 	int op; //opcode
 	int l;
 	int m;
+	int line;
 } Instruction;
 
 enum {
