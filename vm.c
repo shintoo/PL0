@@ -13,8 +13,9 @@ int main(int argc, char *argv[]) {
     
 	if (argc != 2) usage(argv[0]);
 
+	int i = 0
 	loadInstructions(argv[1]);
-	while(1) {
+	while(i++ < 16) {
 		fetch();
 		execute();
         printInstruction(&ir);
