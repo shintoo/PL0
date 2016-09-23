@@ -32,12 +32,12 @@ void loadInstructions(const char* filePath) {
 
     printf("PL/0 code:\n\n");
 
-    for (i = 0; !feof(source) && i < MAX_CODE_LENGTH; i++) {
-        fgets(buf, 32, source);
+    for (i = 0; fscanf(source, "%d %d %d"), &code[i].op, &code[i].l, &code[i].m; i++) {
+        //fgets(buf, 32, source);
        	 
-	code[i].op = atoi(strtok(buf, " "));
-        code[i].l = atoi(strtok(NULL, " "));
-        code[i].m = atoi(strtok(NULL, " "));
+	//code[i].op = atoi(strtok(buf, " "));
+        //code[i].l = atoi(strtok(NULL, " "));
+        //code[i].m = atoi(strtok(NULL, " "));
         
 	printInstruction(code + i);
     }
@@ -180,6 +180,7 @@ void execute(void) {
 					break;
 
 			}
+			break;	
 
 	}		
 
