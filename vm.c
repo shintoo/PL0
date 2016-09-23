@@ -16,13 +16,28 @@ int main(int argc, char *argv[]) {
 	loadInstructions(argv[1]);
     putchar('\n');
 
+    puts("Execution:\n                      pc    bp    sp   stack");
 	while(running) {
 		fetch();
 		running = execute();
         printInstruction(&ir);
+        printState();
         putchar('\n');
 	}
 	return 0;
+}
+
+void printState() {
+    printf(" %5d %5d %5d   ", pc, bp, sp);
+
+    int i;
+    for (i = 1; i <= sp; i++) {
+        int j;
+//        for (j = 0; j < ARCount; j++) {
+  //          if (activationRecords[j] == i) printf("%d ");
+    //    }
+        printf("%d ", stack[i]);
+    }
 }
 
 void usage(const char *pname) {
@@ -60,8 +75,9 @@ void printInstruction(const Instruction* i) {
         "OUT", "INP", "HLT"
     };
 
+    if (i->op
 
-    printf("%4d  %s\t%d\t%4d", i->line, 
+    printf("%3d  %s %4d %4d", i->line, 
             i->op == 2 ?
                 OPNAMES[i->m] : 
                 i->op == 9 ?
@@ -88,7 +104,7 @@ int execute(void) {
 				case 0:
 					sp = bp - 1;
 					pc = stack[sp + 4];
-					bp = stack[sp+3];
+					bp = stack[sp + 3];
 					break;
 				case 1:
 					stack[sp] *= -1;
@@ -147,11 +163,11 @@ int execute(void) {
 			stack[sp] = stack[base(ir.l, bp) + ir.m];
 			break;
 		case 4:
-			stack[base(ir.l, bp) + ir.m];
+			stack[base(ir.l, bp) + ir.m] = stack[sp];
 			sp -= 1;
 			break;
 		case 5:
-			stack[sp+1] = 0;
+            stack[sp+1] = 0;
 			stack[sp+2] = base(ir.l, bp);
 			stack[sp+3] = bp;
 			stack[sp+4] = pc;
@@ -176,11 +192,10 @@ int execute(void) {
 					break;
 				case 1:
 					sp += 1;
-					scanf("%d", &stack[sp]);
+					scanf("%d", stack+sp);
 					break;
 				case 2:
 					return 0;
-					break;
 
 			}
 			break;	
@@ -193,7 +208,7 @@ int execute(void) {
 
 int base(int level, int bp) {
 	while(level > 0) {
-		bp = stack[bp+1];
+		bp = stack[bp + 1];
 		level--;
 	}
 	return bp;
