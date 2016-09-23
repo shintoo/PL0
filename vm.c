@@ -10,15 +10,17 @@
  */
 
 int main(int argc, char *argv[]) {
-    
 	if (argc != 2) usage(argv[0]);
+	int running = 1;
 
-	int i = 0
 	loadInstructions(argv[1]);
-	while(i++ < 16) {
+    putchar('\n');
+
+	while(running) {
 		fetch();
-		execute();
+		running = execute();
         printInstruction(&ir);
+        putchar('\n');
 	}
 	return 0;
 }
@@ -75,7 +77,7 @@ void fetch(void) {
 
 }
 
-void execute(void) {
+int execute(void) {
 	switch(ir.op) {
 		case 1:
 			sp += 1;
@@ -153,7 +155,7 @@ void execute(void) {
 			stack[sp+2] = base(ir.l, bp);
 			stack[sp+3] = bp;
 			stack[sp+4] = pc;
-			bp += 1;
+			bp = sp + 1;
 			pc = ir.m;
 			break;
 		case 6:
@@ -177,13 +179,15 @@ void execute(void) {
 					scanf("%d", &stack[sp]);
 					break;
 				case 2:
-					exit(0);
+					return 0;
 					break;
 
 			}
 			break;	
 
 	}		
+
+    return 1;
 
 }
 
