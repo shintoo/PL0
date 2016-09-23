@@ -32,7 +32,7 @@ void loadInstructions(const char* filePath) {
 
     printf("PL/0 code:\n\n");
 
-    for (i = 0; fscanf(source, "%d %d %d"), &code[i].op, &code[i].l, &code[i].m; i++) {
+    for (i = 0; fscanf(source, "%d %d %d", &code[i].op, &code[i].l, &code[i].m); i++) {
         //fgets(buf, 32, source);
        	 
 	//code[i].op = atoi(strtok(buf, " "));
