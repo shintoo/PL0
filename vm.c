@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 
+/* TODO
+ * write printStack
+ * fix halt issue
+ * ?
+ */
+
 int main(int argc, char *argv[]) {
     
 	if (argc != 2) usage(argv[0]);
@@ -11,6 +17,7 @@ int main(int argc, char *argv[]) {
 	while(1) {
 		fetch();
 		execute();
+        printInstruction(&ir);
 	}
 	return 0;
 }
@@ -21,8 +28,6 @@ void usage(const char *pname) {
 }
 
 void loadInstructions(const char* filePath) {
-   
-
     FILE *source = fopen(filePath, "r");
     char buf[32];
     char token[32];
@@ -32,14 +37,10 @@ void loadInstructions(const char* filePath) {
 
     printf("PL/0 code:\n\n");
 
-    for (i = 0; fscanf(source, "%d %d %d", &code[i].op, &code[i].l, &code[i].m); i++) {
-        //fgets(buf, 32, source);
-       	 
-	//code[i].op = atoi(strtok(buf, " "));
-        //code[i].l = atoi(strtok(NULL, " "));
-        //code[i].m = atoi(strtok(NULL, " "));
-        
-	printInstruction(code + i);
+    for (i = 0; fscanf(source, "%d %d %d", &code[i].op, &code[i].l, &code[i].m)==3; i++) {
+        code[i].line = i;   
+        printInstruction(code + i);
+        putchar('\n');
     }
 }
 
@@ -55,9 +56,9 @@ void printInstruction(const Instruction* i) {
     static const char *SIONAMES[] = {
         "OUT", "INP", "HLT"
     };
-    static int num = 0;
 
-    printf("%4d  %s\t%d\t%4d\n", num++, 
+
+    printf("%4d  %s\t%d\t%4d", i->line, 
             i->op == 2 ?
                 OPNAMES[i->m] : 
                 i->op == 9 ?
@@ -74,7 +75,6 @@ void fetch(void) {
 }
 
 void execute(void) {
-	
 	switch(ir.op) {
 		case 1:
 			sp += 1;
