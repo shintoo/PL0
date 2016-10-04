@@ -31,7 +31,8 @@ int sp = 0;
 
 int stack[MAX_STACK_HEIGHT] = {0};
 Instruction code[MAX_CODE_LENGTH];
-
+int activationRecords[MAX_LEXI_LEVELS] = {0};
+int numActivationRecords = 0;
 Instruction ir;
 
 void usage(const char *pname);
@@ -40,4 +41,5 @@ void printInstruction(const Instruction* i);
 void fetch(void);
 int execute(void);
 int base(int level, int bp);
+void printState(void);
 #endif
