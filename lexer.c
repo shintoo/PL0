@@ -25,6 +25,8 @@ token collectToken(FILE *fp, char c);
 void printTokenType(token t);
 token_type findTokenType(token t);
 
+int isIdent(char *name);
+
 int main(int argc, char *args[]) {
 	FILE *fp = fopen(args[1], "r");	
 	token t;
@@ -154,4 +156,16 @@ token_type findTokenType(token t) {
 	if (isNum(t.text))
 	if (isIdent(t.text)) return identsym;
 	return nulsym;
+}
+
+int isIdent(char *name) {
+	int i = 0;
+	if (!isalpha(name[i++])) return 0;
+
+	while(name[i] != '\0') {
+		if(!isalpha(name[i]) && !isdigit(name[i]))
+			return 0;
+		i++;
+	}
+	return 1;
 }
