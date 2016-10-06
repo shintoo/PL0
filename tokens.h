@@ -1,3 +1,6 @@
+#ifndef _TOKEN_H
+#define _TOKEN_H
+
 typedef enum token {
   nulsym = 1, identsym, numbersym, plussym, minussym,
   multsym, slashsym, oddsym, eqsym, neqsym, lessym, leqsym,
@@ -6,3 +9,5 @@ typedef enum token {
   whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
   readsym , elsesym
 } token_type;
+
+#endif

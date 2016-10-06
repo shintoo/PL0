@@ -11,10 +11,17 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
+
 #include "tokens.h"
 
+enum {
+    text = 0,
+    num, too_long, eof, ident_starts_with_num
+};
+
 typedef struct _token {
-	int which; // text 0, num 1, invalid 2, EOF 3
+	int which; // text 0, num 1, too long 2, EOF 3, identstaartswithnum 4
 	char text[20];
 } token;
 
@@ -24,16 +31,21 @@ token specialcase(FILE *fp, char c);
 token collectToken(FILE *fp, char c);
 void printTokenType(token t);
 token_type findTokenType(token t);
+void printSourceWithAndWithoutComments(FILE *fp);
 
 int isIdent(char *name);
+int isNum(char *text);
 
 int main(int argc, char *args[]) {
 	FILE *fp = fopen(args[1], "r");	
 	token t;
 
+    printSourceWithAndWithoutComments(fp);
+    rewind(fp);
+    puts("\n\n");
+
 	t = getNextToken(fp);
 	do {
-        printf("token: \"%s\"\n", t.text);
 		printTokenType(t);
         t = getNextToken(fp);
 	} while (!feof(fp));
@@ -44,7 +56,7 @@ int main(int argc, char *args[]) {
 }
 
 void printTokenType(token t) {
-	
+	printf("%s\t\t%2d\n", t.text, findTokenType(t));
 }
 
 token getNextToken(FILE *fp) {
@@ -127,10 +139,10 @@ token collectToken(FILE *fp, char c) {
 		*p++ = c;
 		c = fgetc(fp);
 		if (p - ret.text > 12) {
-			printf("error: token size too long!!\n");
+			printf("error: token size too long\n");
 			ret.which = 2;
+            *p = '\0';
 			return ret;
-			// entire token here
 			
 		}
 	} while (isalpha(c) || isdigit(c));
@@ -148,13 +160,20 @@ token_type findTokenType(token t) {
     };
 
 	int i;
+
+    if (t.which == 2) {
+        printf("error: identifier too long: %d\n", t.text);
+        return nulsym;
+    }
+
 	for (i = 0; i < 30; i++) 
 		if(!strcmp(tokens[i], t.text)) 
 			return i + 3;
 	
 
-	if (isNum(t.text))
+	if (isNum(t.text)) return numbersym;
 	if (isIdent(t.text)) return identsym;
+
 	return nulsym;
 }
 
@@ -165,7 +184,64 @@ int isIdent(char *name) {
 	while(name[i] != '\0') {
 		if(!isalpha(name[i]) && !isdigit(name[i]))
 			return 0;
-		i++;
+        i++;
 	}
 	return 1;
+}
+
+int isNum(char *text) {
+    int num;
+
+    while (*text)
+        if (!isdigit(*text++))
+            return 0;
+
+
+    num = atoi(text);
+    if (num > 65535)
+        printf("error: number too big: %d\n", num);
+
+    return 1;
+}
+
+void printsource(FILE *fp, int comments_hidden) {
+    char buffer[80];
+    int i;
+    int in_comment = 0;
+
+    rewind(fp);
+
+    fgets(buffer, 80, fp);
+
+    do {
+        for (i = 0; buffer[i]; i++) {
+            if (comments_hidden) {
+                if (!in_comment) {
+                    if (buffer[i] == '/' && buffer[i+1] == '*') {
+                        in_comment = 1;
+                        i++;
+                        printf("  ");
+                    }
+                    else
+                        putchar(buffer[i]);
+                } else {
+                    if (buffer[i] == '*' && buffer[i+1] == '/') {
+                        in_comment = 0;
+                        i++;
+                    }
+                    putchar(' ');
+                }
+            } else {
+                putchar(buffer[i]);
+            }
+        }
+        fgets(buffer, 80, fp);
+    } while (!feof(fp));
+}
+
+void printSourceWithAndWithoutComments(FILE *fp) {
+    puts("\nsource code:\n-----------");
+    printsource(fp, 0);
+    puts("\nsource code without comments:\n-----------------------------");
+    printsource(fp, 1);
 }
