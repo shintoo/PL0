@@ -14,10 +14,7 @@
 
 typedef struct _token {
 	int which; // text 0, num 1, invalid 2, EOF 3
-	union {
-		char text[20];
-		int num;
-	} val;
+	char text[20];
 } token;
 
 
@@ -25,6 +22,7 @@ token getNextToken(FILE *fp);
 token specialcase(FILE *fp, char c);
 token collectToken(FILE *fp, char c);
 void printTokenType(token t);
+token_type findTokenType(token t);
 
 int main(int argc, char *args[]) {
 	FILE *fp = fopen(args[1], "r");	
@@ -32,7 +30,7 @@ int main(int argc, char *args[]) {
 
 	t = getNextToken(fp);
 	do {
-        printf("token: \"%s\"\n", t.val.text);
+        printf("token: \"%s\"\n", t.text);
 		printTokenType(t);
         t = getNextToken(fp);
 	} while (!feof(fp));
@@ -43,6 +41,7 @@ int main(int argc, char *args[]) {
 }
 
 void printTokenType(token t) {
+	
 }
 
 token getNextToken(FILE *fp) {
@@ -98,19 +97,19 @@ token specialcase(FILE *fp, char c) {
         case '>':
             x = fgetc(fp);
             if (x == '=' || (c == '<' && x == '>')) {
-                ret.val.text[0] = c;
-                ret.val.text[1] = x;
-                ret.val.text[2] = '\0';
+                ret.text[0] = c;
+                ret.text[1] = x;
+                ret.text[2] = '\0';
             }
             else {
-                ret.val.text[0] = c;
-                ret.val.text[1] = '\0';
+                ret.text[0] = c;
+                ret.text[1] = '\0';
                 ungetc(x, fp);
             }
             break;
         default:
-            ret.val.text[0] = c;
-            ret.val.text[1] = '\0';
+            ret.text[0] = c;
+            ret.text[1] = '\0';
     }
 
 	return ret;
@@ -119,12 +118,12 @@ token specialcase(FILE *fp, char c) {
 token collectToken(FILE *fp, char c) {
 	token ret;
 
-	char *p = ret.val.text;
+	char *p = ret.text;
 
 	do {
 		*p++ = c;
 		c = fgetc(fp);
-		if (p - ret.val.text > 12) {
+		if (p - ret.text > 12) {
 			printf("error: token size too long!!\n");
 			ret.which = 2;
 			return ret;
@@ -136,4 +135,23 @@ token collectToken(FILE *fp, char c) {
     *p = '\0';
 	ret.which = 1;
 	return ret;
+}
+
+token_type findTokenType(token t) {
+	static char **tokens = 
+		{
+	          "+", "-", "*", "/", "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")",
+	          ",", ";", ".", ":=", "begin", "end", "if", "then", "while", "do", 
+	          "call", "const", "var", "procedure", "write", "read", "else"
+                };
+
+	int i;
+	for (i = 0; i < 30; i++) 
+		if(!strcmp(tokens[i], t.text) 
+			return i + 3;
+	
+
+	if (isNum(t.text))
+	if (isIdent(t.text)) return identsym;
+	return nulsym;
 }
