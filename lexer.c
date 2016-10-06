@@ -10,6 +10,7 @@
 // 
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 #include "tokens.h"
 
 typedef struct _token {
@@ -138,16 +139,15 @@ token collectToken(FILE *fp, char c) {
 }
 
 token_type findTokenType(token t) {
-	static char **tokens = 
-		{
+	static char *tokens[] = {
 	          "+", "-", "*", "/", "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")",
 	          ",", ";", ".", ":=", "begin", "end", "if", "then", "while", "do", 
 	          "call", "const", "var", "procedure", "write", "read", "else"
-                };
+    };
 
 	int i;
 	for (i = 0; i < 30; i++) 
-		if(!strcmp(tokens[i], t.text) 
+		if(!strcmp(tokens[i], t.text)) 
 			return i + 3;
 	
 
