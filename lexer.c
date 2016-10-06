@@ -9,35 +9,41 @@
 // printing errors
 // 
 #include <stdio.h>
+#include <ctype.h>
 #include "tokens.h"
 
 typedef struct _token {
 	int which; // text 0, num 1, invalid 2, EOF 3
 	union {
-		char[20] text;
+		char text[20];
 		int num;
 	} val;
 } token;
 
 
 token getNextToken(FILE *fp);
-token specialcases(FILE *fp, char c);
+token specialcase(FILE *fp, char c);
 token collectToken(FILE *fp, char c);
+void printTokenType(token t);
 
 int main(int argc, char *args[]) {
 	FILE *fp = fopen(args[1], "r");	
 	token t;
 
-	while (!feof(fp)) {
-		t = getNextToken(fp);
+	t = getNextToken(fp);
+	do {
+        printf("token: \"%s\"\n", t.val.text);
 		printTokenType(t);
-	}
+        t = getNextToken(fp);
+	} while (!feof(fp));
 
 
 	fclose(fp);
 	return 0;
 }
 
+void printTokenType(token t) {
+}
 
 token getNextToken(FILE *fp) {
 	token ret;
@@ -56,11 +62,13 @@ token getNextToken(FILE *fp) {
 
 		if (c == '*' && in_comment) {
 			char x = fgetc(fp);
-			if (x == '/') in_comment = 0;
-			else ungetc(x, fp);
+			if (x == '/') {
+                in_comment = 0;
+                c = fgetc(fp);
+            }
 		}
 
-	} while (isspace(c) && in_comment)
+	} while (isspace(c) || in_comment);
 
 	if (c == EOF) {
 		ret.which = 3;
@@ -78,40 +86,54 @@ token getNextToken(FILE *fp) {
 }
 
 
-token specialcases(FILE *fp, char c) {
+token specialcase(FILE *fp, char c) {
 	token ret;
+    char x;
 
-	char *p = ret.text.value;
+    ret.which = 0;
 
-	do {
-		*p++ = c;
-		c = fgetc(fp);
-	} while (!isspace(c) && c != EOF);
+    switch (c) {
+        case ':':
+        case '<':
+        case '>':
+            x = fgetc(fp);
+            if (x == '=' || (c == '<' && x == '>')) {
+                ret.val.text[0] = c;
+                ret.val.text[1] = x;
+                ret.val.text[2] = '\0';
+            }
+            else {
+                ret.val.text[0] = c;
+                ret.val.text[1] = '\0';
+                ungetc(x, fp);
+            }
+            break;
+        default:
+            ret.val.text[0] = c;
+            ret.val.text[1] = '\0';
+    }
 
-	if (c == EOF) ungetc(c, fp);
-
-	ret.which = 0; 
 	return ret;
 }
 
-token collectToken(fp, c) {
+token collectToken(FILE *fp, char c) {
 	token ret;
 
-	char *p = ret.text.value;
+	char *p = ret.val.text;
 
 	do {
 		*p++ = c;
 		c = fgetc(fp);
-		if (p - ret.text.value > 12) {
+		if (p - ret.val.text > 12) {
 			printf("error: token size too long!!\n");
 			ret.which = 2;
 			return ret;
 			// entire token here
 			
 		}
-	} while (isalpha(c) && isdigit(c));
+	} while (isalpha(c) || isdigit(c));
 	ungetc(c, fp);
-
+    *p = '\0';
 	ret.which = 1;
 	return ret;
 }
