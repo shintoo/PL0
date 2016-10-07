@@ -30,7 +30,7 @@ token getNextToken(FILE *fp);
 token specialcase(FILE *fp, char c);
 token collectToken(FILE *fp, char c);
 void printTokenType(token t);
-token_type findTokenType(token t);
+token_type findTokenType(token *t);
 void printsource(FILE*, int);
 void getSourceOpts(int, const char **, int*);
 
@@ -47,15 +47,25 @@ int main(int argc, const char *args[]) {
     fp = fopen(args[argvals[1]], "r");
     switch (argvals[0]) {
         case 0: // clean
+            puts("\nsource code without comments:\n-----------------------------");
             printsource(fp, 1);
             rewind(fp);
             break;
         case 1: // comments
+            puts("\nsource code:\n-----------");
             printsource(fp, 0);
             rewind(fp);
             break;
+        case 2: // both
+            puts("\nsource code:\n-----------");
+            printsource(fp, 0);
+            rewind(fp);
+            puts("\nsource code without comments:\n-----------------------------");
+            printsource(fp, 1);
+            rewind(fp);
     }
 
+    puts("\ntokens:\n-------");
 	t = getNextToken(fp);
 	do {
 		printTokenType(t);
@@ -68,25 +78,25 @@ int main(int argc, const char *args[]) {
 }
 
 void printTokenType(token t) {
-    token_type type = findTokenType(t);
+    token_type type = findTokenType(&t);
 
-    printf("%s               ", t.text);
+    printf("%-12s", t.text);
 
     switch (error_num) {
         case valid:
-            printf("%d\n", type);
+            printf(" %d\n", type);
             break;
         case ident_starts_with_num:
-            puts("Error: identifier begins with number");
+            puts(" Error: identifier begins with number");
             break;
         case ident_too_long:
-            puts("Error: identifier too long");
+            puts(" Error: identifier too long");
             break;
         case invalid_token:
-            puts("Error: invalid token");
+            puts(" Error: invalid token");
             break;
         case num_val_exceeds_max:
-            puts("Error: number value exceeds maximum");
+            puts(" Error: number value exceeds maximum");
     }
 }
 
@@ -170,8 +180,7 @@ token collectToken(FILE *fp, char c) {
 
 	do {
 		*p++ = c;
-		c = fgetc(fp);
-		}
+		c = fgetc(fp);	
 	} while (isalpha(c) || isdigit(c));
 	ungetc(c, fp);
     *p = '\0';
@@ -179,7 +188,7 @@ token collectToken(FILE *fp, char c) {
 	return ret;
 }
 
-token_type findTokenType(token t) {
+token_type findTokenType(token *t) {
 	static char *tokens[] = {
 	          "+", "-", "*", "/", "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")",
 	          ",", ";", ".", ":=", "begin", "end", "if", "then", "while", "do", 
@@ -188,18 +197,13 @@ token_type findTokenType(token t) {
 
 	int i;
 
-    if (t.which == 2) {
-        printf("error: identifier too long: %d\n", t.text);
-        return nulsym;
-    }
-
 	for (i = 0; i < 30; i++) 
-		if(!strcmp(tokens[i], t.text)) 
-			return i + 3;
+		if(!strcmp(tokens[i], t->text)) 
+			return i + 4;
 	
 
-	if (isNum(t.text)) return numbersym;
-	if (isIdent(t.text)) return identsym;
+	if (isNum(t->text)) return numbersym;
+	if (isIdent(t->text)) return identsym;
 
     error_num = invalid_token;
 	return nulsym;
@@ -216,7 +220,7 @@ int isIdent(char *name) {
             return 0;
         }
         i++;
-        if (i > 13) {
+        if (i > 11) {
             error_num = ident_too_long;
             name[i] = '\0';
             return 1;
@@ -251,9 +255,10 @@ void printsource(FILE *fp, int comments_hidden) {
 
     rewind(fp);
 
-    fgets(buffer, 80, fp);
 
-    do {
+
+    while (!feof(fp)) {
+        fgets(buffer, 80, fp);
         for (i = 0; buffer[i]; i++) {
             if (comments_hidden) {
                 if (!in_comment) {
@@ -275,10 +280,10 @@ void printsource(FILE *fp, int comments_hidden) {
                 putchar(buffer[i]);
             }
         }
-        fgets(buffer, 80, fp);
-    } while (!feof(fp));
 
-    printf("\n\n");
+    }
+
+    putchar('\n');
 }
 
 void printSourceWithAndWithoutComments(FILE *fp) {
@@ -289,36 +294,23 @@ void printSourceWithAndWithoutComments(FILE *fp) {
 }
 
 void getSourceOpts(int argc, const char **argv, int *argvals) {
-    printf("argc: %d\n", argc);
+    int clean = 0;
+    int source = 0;
+    int file = 0;
+
     for (int i = 0; i < argc; i++) {
-        printf("%d:  %s, ", i, argv[i]);
-    }
-    if (argc < 3) {
-        argvals[0] = 3;
-        argvals[1] = 1;
-        return;
-    }
-
-    if (!strcmp(argv[1], "--clean")) {
-        argvals[0] = 0;
-        argvals[1] = 2;
-        return;
-    }
-    if (!strcmp(argv[1], "--source")) {
-        argvals[0] = 1;
-        argvals[1] = 2;
-        return;
+        if (!strcmp(argv[i], "--clean")) {
+            clean = 1;
+        } else if (!strcmp(argv[i], "--source")) {
+            source = 1;
+        } else {
+            file = i;
+        }
     }
 
-    if (!strcmp(argv[2], "--clean")) {
-        argvals[0] = 0;
-        argvals[1] = 1;
-        return;
-    }
-    
-    if (!strcmp(argv[2], "--source")) {
-        argvals[0] = 1;
-        argvals[1] = 1;
-        return;
-    }
+    if (clean && source) argvals[0] = 2;
+    else if (clean) argvals[0] = 0;
+    else if (source) argvals[0] = 1;
+    else argvals[0] = 99;
+    argvals[1] = file;
 }
