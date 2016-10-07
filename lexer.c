@@ -171,12 +171,6 @@ token collectToken(FILE *fp, char c) {
 	do {
 		*p++ = c;
 		c = fgetc(fp);
-		if (p - ret.text > 12) {
-			printf("error: token size too long\n");
-			ret.which = 2;
-            *p = '\0';
-			return ret;
-			
 		}
 	} while (isalpha(c) || isdigit(c));
 	ungetc(c, fp);
@@ -207,6 +201,7 @@ token_type findTokenType(token t) {
 	if (isNum(t.text)) return numbersym;
 	if (isIdent(t.text)) return identsym;
 
+    error_num = invalid_token;
 	return nulsym;
 }
 
@@ -221,6 +216,11 @@ int isIdent(char *name) {
             return 0;
         }
         i++;
+        if (i > 13) {
+            error_num = ident_too_long;
+            name[i] = '\0';
+            return 1;
+        }
 	}
 
     if (isdigit(name[0])) error_num = ident_starts_with_num;
