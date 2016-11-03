@@ -7,7 +7,7 @@ void program(void) {
 	block();
 	// if the end token is not a period, error
 	if (token != periodsym)
-		error();
+		error(9);
 }
 
 void block(void) {
@@ -15,13 +15,13 @@ void block(void) {
 		do {
 			advance(); /* get ident */
 			if (token != identsym)
-				error();
+				error(4);
 			advance(); /* get eq */
 			if (token != eqsym)
-				error();
+				error(3);
 			advance(); /* get value */
 			if (token != numbersym)
-				error();
+				error(2);
 			advance(); /* get semivolon or comma */
 
 			// create constant variable using given
@@ -29,7 +29,7 @@ void block(void) {
 		} while (token == commasym);
 
 		if (token != semicolonsym)
-			error();
+			error(17);
 		advance();
 	}
 
@@ -37,26 +37,28 @@ void block(void) {
 		do {
 			advance(); /* get ident */
 			if (token != identsym)
-				error();
+				error(4);
 			advance(); /* semicolon or comma */
 			
 			// create variable using given ident as name, L and M
 			// in the symbol table
 		} while (token == commasym);
+		if (token != semicolonsym)
+			error(17);
 		advance();
 	}
 
 	while (token == procsym) { /* make a procedure */
 		advance(); /* get procedure name */
 		if (token != identsym)
-			error();
+			error(4);
 		advance(); /* get semicolon */
 		if (token != semicolonsym)
-			error();
+			error(17);
 		advance() /* move to start of block */
 		block(); /* process block */
 		if (token != semicolonsym)
-			error();
+			error(17);
 		advance();
 
 		// make procedure in symbol table using
@@ -72,7 +74,7 @@ void statement(void) {
 			advance();
 			// must be becomessym
 			if (token != becomessym)
-				error();
+				error(13);
 			// get the next token and call expression function
 			advance();
 			expression();
@@ -82,7 +84,7 @@ void statement(void) {
 			// advance and make sure it is an identsym
 			advance();
 			if (token != identsym)
-				error();
+				error(14);
 			advance();
 			break;
 		// if it is a beginsym
@@ -95,6 +97,8 @@ void statement(void) {
 				advance();
 				statement();
 			}
+			if (token != endsym)
+				error(17);
 			break;
 		// if it is an if statment
 		case ifsym:
@@ -103,11 +107,21 @@ void statement(void) {
 			condition();
 			// make sure the next token is a thensym
 			if (token != thensym)
-				error();
+				error(16);
 			// advance and call the statement function
 			advance();
 			statement();
 			break;
+
+		case whilesym:
+			advance();
+			condition();
+			if (token != dosym)
+				error(18);
+			advance();
+			statement();
+			break;
+
 	}
 }
 
@@ -119,7 +133,7 @@ void condition(void) {
 	} else {
 		expression();
 		if (token != relation /* fix this later, <> < > = etc */)
-			error();
+			error(20);
 		advance();
 		expression();
 	}
@@ -160,11 +174,11 @@ void factor(void) {
 			advance();
 			expression();
 			if (token != rparensym)
-				error();
+				error(22);
 			advance();
 			break;
 		default:
-			error();
+			error(23);
 	}
 }
 
