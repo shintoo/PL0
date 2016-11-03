@@ -4,14 +4,15 @@
 #define MAX_SYMBOL_TABLE_SIZE 100
 
 typedef struct symbol {
-	int kind;
+	int kind; // const 1 var 2 proc 3
 	char name[12];
 	int val;
 	int level;
 	int addr;
 } symbol;
 
-smybol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+unsigned symbol_count = 0;
 
 void program(void);
 void block(void);

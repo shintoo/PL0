@@ -4,6 +4,16 @@
 
 FILE *output;
 
+void add_to_symbol_table(int kind, char *name, int val, int level, int addr) {
+	symbol_table[symbol_count].kind = kind;
+	strncpy(symbol_table[symbol_count].name, name, 12);
+	symbol_table[symbol_count].val = val;
+	symbol_table[symbol_count].level = level;
+	symbol_table[symbol_count].addr = addr;
+
+	symbol_count++;
+}
+
 void program(void) {
 	// advance and call block
 	advance();
@@ -16,17 +26,24 @@ void program(void) {
 void block(int level) {
 	if (t_type == constsym) { /* make a constant */
 		do {
+			int value;
+			char label[12];
 			advance(); /* get ident */
 			if (t_type != identsym)
 				error(4);
+			strncpy(label, t->text, 12);
+
 			advance(); /* get eq */
 			if (t_type != eqsym)
 				error(3);
 			advance(); /* get value */
 			if (t_type != numbersym)
 				error(2);
+			value = atoi(t->text);
+
 			advance(); /* get semivolon or comma */
 
+			add_to_symbol_table(1, label, value, level, /*???*/);
 			// create constant variable using given
 			// ident as name, number as value, L and M in symbol table
 		} while (t_type == commasym);
@@ -43,6 +60,8 @@ void block(int level) {
 				error(4);
 			advance(); /* semicolon or comma */
 			
+
+			add_to_symbol_table(2, t->text, 0, level, /*???*/);
 			// create variable using given ident as name, L and M
 			// in the symbol table
 		} while (t_type == commasym);
@@ -52,9 +71,12 @@ void block(int level) {
 	}
 
 	while (t_type == procsym) { /* make a procedure */
+		char label[12];
 		advance(); /* get procedure name */
 		if (t_type != identsym)
 			error(4);
+		strncpy(labe, t->text, 12);
+
 		advance(); /* get semicolon */
 		if (t_type != semicolonsym)
 			error(17);
@@ -64,6 +86,7 @@ void block(int level) {
 			error(17);
 		advance();
 
+		add_to_symbol_table(3, label, 0, level, /*???*/);
 		// make procedure in symbol table using
 		// ident as name, L and M in symbol table
 	}
