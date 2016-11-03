@@ -1,63 +1,66 @@
+#include <stdio.h>
+#include "t_types.h"
+#include "parser.h"
 
-
+FILE *output;
 
 void program(void) {
 	// advance and call block
 	advance();
-	block();
-	// if the end token is not a period, error
-	if (token != periodsym)
+	block(0);
+	// if the end t_type is not a period, error
+	if (t_type != periodsym)
 		error(9);
 }
 
-void block(void) {
-	if (token == constsym) { /* make a constant */
+void block(int level) {
+	if (t_type == constsym) { /* make a constant */
 		do {
 			advance(); /* get ident */
-			if (token != identsym)
+			if (t_type != identsym)
 				error(4);
 			advance(); /* get eq */
-			if (token != eqsym)
+			if (t_type != eqsym)
 				error(3);
 			advance(); /* get value */
-			if (token != numbersym)
+			if (t_type != numbersym)
 				error(2);
 			advance(); /* get semivolon or comma */
 
 			// create constant variable using given
 			// ident as name, number as value, L and M in symbol table
-		} while (token == commasym);
+		} while (t_type == commasym);
 
-		if (token != semicolonsym)
+		if (t_type != semicolonsym)
 			error(17);
 		advance();
 	}
 
-	if (token == varsym) { /* make a variable */
+	if (t_type == varsym) { /* make a variable */
 		do {
 			advance(); /* get ident */
-			if (token != identsym)
+			if (t_type != identsym)
 				error(4);
 			advance(); /* semicolon or comma */
 			
 			// create variable using given ident as name, L and M
 			// in the symbol table
-		} while (token == commasym);
-		if (token != semicolonsym)
+		} while (t_type == commasym);
+		if (t_type != semicolonsym)
 			error(17);
 		advance();
 	}
 
-	while (token == procsym) { /* make a procedure */
+	while (t_type == procsym) { /* make a procedure */
 		advance(); /* get procedure name */
-		if (token != identsym)
+		if (t_type != identsym)
 			error(4);
 		advance(); /* get semicolon */
-		if (token != semicolonsym)
+		if (t_type != semicolonsym)
 			error(17);
 		advance() /* move to start of block */
-		block(); /* process block */
-		if (token != semicolonsym)
+		block(level + 1); /* process block */
+		if (t_type != semicolonsym)
 			error(17);
 		advance();
 
@@ -68,14 +71,14 @@ void block(void) {
 }
 
 void statement(void) {
-	switch (token) {
+	switch (t_type) {
 		// if it is an identifier
 		case identsym:
 			advance();
 			// must be becomessym
-			if (token != becomessym)
+			if (t_type != becomessym)
 				error(13);
-			// get the next token and call expression function
+			// get the next t_type and call expression function
 			advance();
 			expression();
 			break;
@@ -83,7 +86,7 @@ void statement(void) {
 		case callsym:
 			// advance and make sure it is an identsym
 			advance();
-			if (token != identsym)
+			if (t_type != identsym)
 				error(14);
 			advance();
 			break;
@@ -92,12 +95,12 @@ void statement(void) {
 			// advance and call the statement funciton
 			advance();
 			statement();
-			// contiue calling statemnt while the token is a semicolon
-			while (token == semicolonsym) {
+			// contiue calling statemnt while the t_type is a semicolon
+			while (t_type == semicolonsym) {
 				advance();
 				statement();
 			}
-			if (token != endsym)
+			if (t_type != endsym)
 				error(17);
 			break;
 		// if it is an if statment
@@ -105,8 +108,8 @@ void statement(void) {
 			// advance and call the condition function
 			advance();
 			condition();
-			// make sure the next token is a thensym
-			if (token != thensym)
+			// make sure the next t_type is a thensym
+			if (t_type != thensym)
 				error(16);
 			// advance and call the statement function
 			advance();
@@ -116,7 +119,7 @@ void statement(void) {
 		case whilesym:
 			advance();
 			condition();
-			if (token != dosym)
+			if (t_type != dosym)
 				error(18);
 			advance();
 			statement();
@@ -127,12 +130,12 @@ void statement(void) {
 
 void condition(void) {
 	// for an oddsym
-	if (token == oddsym) {
+	if (t_type == oddsym) {
 		advance();
 		expression();
 	} else {
 		expression();
-		if (token != relation /* fix this later, <> < > = etc */)
+		if (t_type != relation /* fix this later, <> < > = etc */)
 			error(20);
 		advance();
 		expression();
@@ -141,11 +144,11 @@ void condition(void) {
 
 void expression(void) {
 	// if addition or subtraction
-	if (token == plussym || token == minussym)
+	if (t_type == plussym || t_type == minussym)
 		advance();
 	term();
 	// continue while adding or subtracting
-	while (token == plussym || token == minussym) {
+	while (t_type == plussym || t_type == minussym) {
 		advance();
 		term();
 	}
@@ -154,14 +157,14 @@ void expression(void) {
 void term(void) {
 	// call factor and continue while multiplying or dividing
 	factor();
-	while (token == multsym || token == slashsym) {
+	while (t_type == multsym || t_type == slashsym) {
 		advance();
 		factor();
 	}
 }
 
 void factor(void) {
-	switch (token) {
+	switch (t_type) {
 		// advance if it is an identsym or numbersym
 		case identsym:
 			advance();
@@ -173,7 +176,7 @@ void factor(void) {
 		case lparensym:
 			advance();
 			expression();
-			if (token != rparensym)
+			if (t_type != rparensym)
 				error(22);
 			advance();
 			break;

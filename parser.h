@@ -21,4 +21,6 @@ void expression(void);
 void term(void);
 void factor(void);
 
+extern FILE *output;
+
 #endif
