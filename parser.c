@@ -167,7 +167,7 @@ void condition(void) {
 		expression();
 	} else {
 		expression();
-		if (t_type != relation /* fix this later, <> < > = etc */)
+		if (t_type < eqsym || t_type > geqsym)
 			error(20);
 		advance();
 		expression();
