@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "tokens.h"
 
 enum {
 	valid, ident_too_long, ident_starts_with_num, num_val_exceeds_max, invalid_token

@@ -1,6 +1,12 @@
 #include <stdio.h>
-#include "t_types.h"
+#include <string.h>
+#include <stdlib.h>
+#include "code_gen.h"
+#include "tokens.h"
+#include "lexer.h"
 #include "parser.h"
+#include "error.h"
+#include "cool_stuff.h"
 
 FILE *output;
 
@@ -21,6 +27,8 @@ void program(void) {
 	// if the end t_type is not a period, error
 	if (t_type != periodsym)
 		error(9);
+
+	emit(SIO, 0, 3);
 }
 
 void block(int level) {
@@ -31,7 +39,7 @@ void block(int level) {
 			advance(); /* get ident */
 			if (t_type != identsym)
 				error(4);
-			strncpy(label, t->text, 12);
+			strncpy(label, t.text, 12);
 
 			advance(); /* get eq */
 			if (t_type != eqsym)
@@ -39,11 +47,11 @@ void block(int level) {
 			advance(); /* get value */
 			if (t_type != numbersym)
 				error(2);
-			value = atoi(t->text);
+			value = atoi(t.text);
 
 			advance(); /* get semivolon or comma */
 
-			add_to_symbol_table(1, label, value, level, /*???*/);
+			add_to_symbol_table(1, label, value, level, 0); // TODO
 			// create constant variable using given
 			// ident as name, number as value, L and M in symbol table
 		} while (t_type == commasym);
@@ -60,8 +68,7 @@ void block(int level) {
 				error(4);
 			advance(); /* semicolon or comma */
 			
-
-			add_to_symbol_table(2, t->text, 0, level, /*???*/);
+			add_to_symbol_table(2, t.text, 0, level, 0); // TODO not 0 lmbo
 			// create variable using given ident as name, L and M
 			// in the symbol table
 		} while (t_type == commasym);
@@ -75,18 +82,18 @@ void block(int level) {
 		advance(); /* get procedure name */
 		if (t_type != identsym)
 			error(4);
-		strncpy(labe, t->text, 12);
+		strncpy(label, t.text, 12);
 
 		advance(); /* get semicolon */
 		if (t_type != semicolonsym)
 			error(17);
-		advance() /* move to start of block */
+		advance(); /* move to start of block */
 		block(level + 1); /* process block */
 		if (t_type != semicolonsym)
 			error(17);
 		advance();
 
-		add_to_symbol_table(3, label, 0, level, /*???*/);
+		add_to_symbol_table(3, label, 0, level, 0); // TODO lmbo
 		// make procedure in symbol table using
 		// ident as name, L and M in symbol table
 	}
@@ -94,6 +101,7 @@ void block(int level) {
 }
 
 void statement(void) {
+	int ctemp, cx1, cx2;
 	switch (t_type) {
 		// if it is an identifier
 		case identsym:
@@ -136,17 +144,17 @@ void statement(void) {
 				error(16);
 			// advance and call the statement function
 			advance();
-			int ctemp = cx;
+			ctemp = cx;
 			emit(JPC, 0, 0);
 			statement();
 			code[ctemp].m = cx;
 			break;
 
 		case whilesym:
-			int cx1 = cx;
+			cx1 = cx;
 			advance();
 			condition();
-			int cx2 = cx;
+			cx2 = cx;
 			emit(JPC, 0, 0);
 			if (t_type != dosym)
 				error(18);
@@ -182,7 +190,7 @@ void expression(void) {
 		advance();
 		term();
 		if (addop == minussym)
-			emit(OPR, 0, OPR_NEG); //negate
+			emit(OPR, 0, NEG); //negate
 	}
 	else {
 		term();
@@ -193,9 +201,9 @@ void expression(void) {
 		advance();
 		term();
 		if (addop == plussym)
-			emit(OPR, 0, OPR_ADD); //addition
+			emit(OPR, 0, ADD); //addition
 		else {
-			emit(OPR, 0, OPR_SUB);
+			emit(OPR, 0, SUB);
 		}
 	}
 }
@@ -205,13 +213,13 @@ void term(void) {
 	int mulop;
 	factor();
 	while (t_type == multsym || t_type == slashsym) {
-		mulop = token;
+		mulop = t_type;
 		advance();
 		factor();
 		if (mulop == multsym)
-			emit(OPR, 0, OPR_MUL);
+			emit(OPR, 0, MUL);
 		else 
-			emit(OPR, 0, OPR_DIV);
+			emit(OPR, 0, DIV);
 	}
 }
 
@@ -225,10 +233,10 @@ void factor(void) {
 			advance();
 			break;
 		// if if is a parenthesis advance and call expression
-		case lparensym:
+		case lparentsym:
 			advance();
 			expression();
-			if (t_type != rparensym)
+			if (t_type != rparentsym)
 				error(22);
 			advance();
 			break;

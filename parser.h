@@ -1,6 +1,8 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 
+#include <stdio.h>
+
 #define MAX_SYMBOL_TABLE_SIZE 100
 
 typedef struct symbol {
@@ -15,7 +17,7 @@ symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 unsigned symbol_count = 0;
 
 void program(void);
-void block(void);
+void block(int level);
 void statement(void);
 void condition(void);
 void expression(void);
