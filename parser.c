@@ -10,6 +10,9 @@
 
 FILE *output;
 
+symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+unsigned symbol_count = 0;
+
 void add_to_symbol_table(int kind, char *name, int val, int level, int addr) {
 	symbol_table[symbol_count].kind = kind;
 	strncpy(symbol_table[symbol_count].name, name, 12);

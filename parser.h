@@ -13,12 +13,12 @@ typedef struct symbol {
 	int addr;
 } symbol;
 
-symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
-unsigned symbol_count = 0;
+extern symbol symbol_table[];
+extern unsigned symbol_count;
 
 void program(void);
 void block(int level);
-void statement(void);
+void statement();
 void condition(void);
 void expression(void);
 void term(void);

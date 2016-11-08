@@ -9,9 +9,9 @@ typedef struct _instruction {
 
 #define CODE_SIZE 500
 
-Instruction code[CODE_SIZE];
-int cx = 0;
+extern Instruction *code;
+extern int cx;
 
-void emit(int, int, int);
+void emit(int op, int l, int m);
 
 #endif
