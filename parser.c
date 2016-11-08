@@ -136,16 +136,25 @@ void statement(void) {
 				error(16);
 			// advance and call the statement function
 			advance();
+			int ctemp = cx;
+			emit(JPC, 0, 0);
 			statement();
+			code[ctemp].m = cx;
 			break;
 
 		case whilesym:
+			int cx1 = cx;
 			advance();
 			condition();
+			int cx2 = cx;
+			emit(JPC, 0, 0);
 			if (t_type != dosym)
 				error(18);
 			advance();
+			
 			statement();
+			emit(JMP, 0, cx1);
+			code[cx2].m = cx;
 			break;
 
 	}
@@ -166,23 +175,43 @@ void condition(void) {
 }
 
 void expression(void) {
+	int addop;
 	// if addition or subtraction
-	if (t_type == plussym || t_type == minussym)
-		advance();
-	term();
-	// continue while adding or subtracting
-	while (t_type == plussym || t_type == minussym) {
+	if (t_type == plussym || t_type == minussym) {
+		addop = t_type;
 		advance();
 		term();
+		if (addop == minussym)
+			emit(OPR, 0, OPR_NEG); //negate
+	}
+	else {
+		term();
+	}
+	// continue while adding or subtracting
+	while (t_type == plussym || t_type == minussym) {
+		addop = t_type;
+		advance();
+		term();
+		if (addop == plussym)
+			emit(OPR, 0, OPR_ADD); //addition
+		else {
+			emit(OPR, 0, OPR_SUB);
+		}
 	}
 }
 
 void term(void) {
 	// call factor and continue while multiplying or dividing
+	int mulop;
 	factor();
 	while (t_type == multsym || t_type == slashsym) {
+		mulop = token;
 		advance();
 		factor();
+		if (mulop == multsym)
+			emit(OPR, 0, OPR_MUL);
+		else 
+			emit(OPR, 0, OPR_DIV);
 	}
 }
 

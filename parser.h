@@ -23,5 +23,6 @@ void term(void);
 void factor(void);
 
 extern FILE *output;
+extern FILE *input;
 
 #endif
