@@ -13,3 +13,9 @@ void emit(int op, int l, int m) {
 		code[cx++].m = m;
 	}
 }
+
+void dump(FILE *out) {
+	for (int i = 0; i < cx; i++) {
+		fprintf(out, "%d %d %d\n", code[i].op, code[i].l, code[i].m);
+	}
+}
