@@ -1,0 +1,7 @@
+var x;
+
+begin
+	x := 10;
+	if x <> 5
+		write x;
+end.
