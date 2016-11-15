@@ -1,4 +1,4 @@
-/* Satya Satya
+/* Satya Patel
    Sean Rapp
    Brody "Broderson" Nissen */
 
@@ -8,6 +8,9 @@
 #include <stdlib.h>
 
 #define MAX_SYMBOL_TABLE_SIZE 100
+
+#define ERROR(NUM) do { printf("%d error, \n", __LINE__); error(NUM);} while(0)
+#define EMIT(OP, L, M) do {printf("%d EMIT %d %d %d\n", __LINE__, OP, L, M); emit(OP, L, M);} while(0)
 
 typedef struct _instruction {
 	int op;
@@ -74,7 +77,7 @@ enum {
 	valid, ident_too_long, ident_starts_with_num, num_val_exceeds_max, invalid_token
 };
 
-int error_num; //identifies which type of error it is
+int error_num; //identifies which type of ERROR it is
 
 typedef struct _token {
 	int which; // obsolete
@@ -92,7 +95,7 @@ token getNextToken(FILE *fp);
 token specialcase(FILE *fp, char c);
 /* builds the string that holds the token and returns it */
 token collectToken(FILE *fp, char c);
-/* prints the token and the type, along with any error messages */
+/* prints the token and the type, along with any ERROR messages */
 void printTokenType(token t);
 /* determines based on the token what type of token it is */
 token_type findTokenType(token *t);
@@ -273,7 +276,7 @@ int isIdent(char *name) {
 			return 1; 
 		}
 	}
-	//this is another error, and it should be notified
+	//this is another ERROR, and it should be notified
 	if (isdigit(name[0])) error_num = ident_starts_with_num;
 	return 1;
 }
@@ -289,7 +292,7 @@ int isNum(char *text) {
 
 	num = atoi(text); //turn num into a number
 	
-	if (num > 65535) { //if its greater than 2^16 - 1, another error has occurred
+	if (num > 65535) { //if its greater than 2^16 - 1, another ERROR has occurred
 		error_num = num_val_exceeds_max;
 	}
 
@@ -358,7 +361,8 @@ void getSourceOpts(int argc, const char **argv, int *argvals) {
 	argvals[1] = file;
 }
 
-void error(int error_num) {
+void error(int num) {
+	printf("THE ERROR NUMBER IS %d LMBO\n", num);
 
 	static const char *errors[] = {"this is the 0 placeholder fam..............", // 0
 		       "Use = instead of :=.",  // 1
@@ -390,7 +394,7 @@ void error(int error_num) {
 	};
 
 
-	fprintf(output, "Error: %s\ntoken: \"%s\"\n", errors[error_num], t.text);
+	fprintf(output, "Error: %s\ntoken: \"%s\"\n", errors[num], t.text);
 	fclose(source);
 	fclose(output);
 	exit(547);
@@ -398,7 +402,7 @@ void error(int error_num) {
 
 void emit(int op, int l, int m) {
 	if (cx > CODE_SIZE)
-		error(25);
+		ERROR(25);
 	else {
 		code[cx].op = op;
 		code[cx].l = l;
@@ -420,7 +424,7 @@ int find_symbol(char *ident) {
 			return i;
 	}
 
-	error(11);
+	ERROR(11);
 }
 
 void add_to_symbol_table(int kind, char *name, int val, int level, int addr) {
@@ -439,18 +443,16 @@ void program(void) {
 	// advance and call block
 	advance();
 	block();
-	// if the end t_type is not a period, error
+	// if the end t_type is not a period, ERROR
 	if (t_type != periodsym)
-		error(9);
+		ERROR(9);
 
-	emit(SIO, 0, 2);
+	EMIT(SIO, 0, 2);
 }
 
 void block(void) {
 	level++;
 	int space = 0;
-
-	emit (JMP,0,0) ;
 
 	if (t_type == constsym) { /* make a constant */
 		do {
@@ -458,27 +460,27 @@ void block(void) {
 			char label[12];
 			advance(); /* get ident */
 			if (t_type != identsym)
-				error(4);
+				ERROR(4);
 			strncpy(label, t.text, 12);
 
 			advance(); /* get eq */
 			if (t_type != eqsym)
-				error(3);
+				ERROR(3);
 			advance(); /* get value */
 			if (t_type != numbersym)
-				error(2);
+				ERROR(2);
 			value = atoi(t.text);
 
 			advance(); /* get semivolon or comma */
 
-			add_to_symbol_table(constant, label, value, level, 0); // TODO
+			add_to_symbol_table(constant, label, value, level, symbol_count + 4); // TODO what address is this supposed to be??
 			// create constant variable using given
 			// ident as name, number as value, L and M in symbol table
 			space++;
 		} while (t_type == commasym);
 
 		if (t_type != semicolonsym)
-			error(17);
+			ERROR(17);
 		advance();
 	}
 
@@ -486,37 +488,37 @@ void block(void) {
 		do {
 			advance(); /* get ident */
 			if (t_type != identsym)
-				error(4);	
-			add_to_symbol_table(var, t.text, 0, level, 0); // TODO not 0 lmbo
+				ERROR(4);	
+			add_to_symbol_table(var, t.text, 0, level, symbol_count + 4); // TODO not 0 lmbo
 			advance(); /* semicolon or comma */
 			// create variable using given ident as name, L and M
 			// in the symbol table
 			space++;
 		} while (t_type == commasym);
 		if (t_type != semicolonsym)
-			error(17);
+			ERROR(17);
 		advance();
 	}
 
-	emit(INC, 0, space);
+	EMIT(INC, 0, space + 4);
 
 	while (t_type == procsym) { /* make a procedure */
 		char label[12];
 		advance(); /* get procedure name */
 		if (t_type != identsym)
-			error(4);
+			ERROR(4);
 		strncpy(label, t.text, 12);
 
 		advance(); /* get semicolon */
 		if (t_type != semicolonsym)
-			error(17);
+			ERROR(17);
 		advance(); /* move to start of block */
 		block(); /* process block */
 		if (t_type != semicolonsym)
-			error(17);
+			ERROR(17);
 			advance();
 
-		add_to_symbol_table(proc, label, 0, level, 0); // TODO lmbo
+		add_to_symbol_table(proc, label, 0, level, symbol_count + 4); // TODO lmbo
 		// make procedure in symbol table using
 		// ident as name, L and M in symbol table
 	}
@@ -528,20 +530,32 @@ void statement(void) {
 	switch (t_type) {
 		// if it is an identifier
 		case identsym:
+			fr = find_symbol(t.text);
+			if (fr != -1) { // TODO 
+				/* error not found in symbol table lmbo */
+			}
+
 			advance();
 			// must be becomessym
-			if (t_type != becomessym)
-				error(13);
+			if (t_type != becomessym) {
+				if (t_type == eqsym)
+					ERROR(1);
+				else
+					ERROR(13);
+			}
+
 			// get the next t_type and call expression function
 			advance();
 			expression();
+
+			emit(STO, 0, symbol_table[fr].addr); // TODO
 			break;
 		// if it is a callsym
 		case callsym:
 			// advance and make sure it is an identsym
 			advance();
 			if (t_type != identsym)
-				error(14);
+				ERROR(14);
 			advance();
 			break;
 		// if it is a beginsym
@@ -555,7 +569,7 @@ void statement(void) {
 				statement();
 			}
 			if (t_type != endsym)
-				error(17);
+				ERROR(17);
 
 			advance();
 			break;
@@ -566,13 +580,13 @@ void statement(void) {
 			condition();
 			// make sure the next t_type is a thensym
 			if (t_type != thensym)
-				error(16);
+				ERROR(16);
 			// advance and call the statement function
 			advance();
 			ctemp = cx;
 			
-			emit(JPC, 0, 0);
-			
+			EMIT(JPC, 0, 0);
+
 			statement();
 			code[ctemp].m = cx;
 			break;
@@ -582,25 +596,25 @@ void statement(void) {
 			advance();
 			condition();
 			cx2 = cx;
-			emit(JPC, 0, 0);
+			EMIT(JPC, 0, 0);
 			if (t_type != dosym)
-				error(18);
+				ERROR(18);
 			advance();
 
 			statement();
-			emit(JMP, 0, cx1);
+			EMIT(JMP, 0, cx1);
 			code[cx2].m = cx;
 			break;
 
 		case readsym:
 			advance();
 			if (t_type != identsym)
-				error(26);
+				ERROR(26);
 			fr = find_symbol(t.text);
 			if (symbol_table[fr].kind != var)
-				error(26);
-			emit(SIO, 0, 2);
-			emit(STO, level - symbol_table[fr].level, symbol_table[fr].addr);
+				ERROR(26);
+			EMIT(SIO, 0, 1);
+			EMIT(STO, level - symbol_table[fr].level, symbol_table[fr].addr);
 
 			advance();
 			break;
@@ -608,17 +622,21 @@ void statement(void) {
 		case writesym:
 			advance();
 			if (t_type != identsym) {
-				error(26);
+				ERROR(26);
 			}
 
 			fr = find_symbol(t.text);
 
-			if (symbol_table[fr].kind != var) {
-				error(26); // TODO
+			if (symbol_table[fr].kind != var && symbol_table[fr].kind != constant) {
+				ERROR(26); // TODO
 			}
 
-			emit(LOD, level - symbol_table[fr].level, symbol_table[fr].addr);
-			emit(SIO, 0, 1);
+			if (symbol_table[fr].kind == var)
+				EMIT(LOD, level - symbol_table[fr].level, symbol_table[fr].addr);
+			else if (symbol_table[fr].kind == constant)
+				EMIT(LIT, 0, symbol_table[fr].val);
+
+			EMIT(SIO, 0, 0);
 
 			advance();
 	}
@@ -651,17 +669,17 @@ void condition(void) {
 	if (t_type == oddsym) {
 		advance();
 		expression();
-		emit(ODD, 0, 0);
+		EMIT(ODD, 0, 0);
 	} else {
 		expression();
 		if (t_type < eqsym || t_type > geqsym)
-			error(20);
+			ERROR(20);
 		r = relation_op();
 		if (!r)
-			error(0); // TODO 13?
+			ERROR(13); // TODO 13?
 		advance();
 		expression();
-		emit(r, 0, 0); // ???????????? TODO TODO TODO FIXME FIXME FIXME FIXME FIXME
+		EMIT(OPR, 0, r); // ???????????? TODO TODO TODO FIXME FIXME FIXME FIXME FIXME
 	}
 }
 
@@ -673,20 +691,21 @@ void expression(void) {
 		advance();
 		term();
 		if (addop == minussym)
-			emit(OPR, 0, NEG); //negate
+			EMIT(OPR, 0, NEG); //negate
 	}
 	else {
 		term();
 	}
+
 	// continue while adding or subtracting
 	while (t_type == plussym || t_type == minussym) {
 		addop = t_type;
 		advance();
 		term();
 		if (addop == plussym)
-			emit(OPR, 0, ADD); //addition
+			EMIT(OPR, 0, ADD); //addition
 		else
-			emit(OPR, 0, SUB);
+			EMIT(OPR, 0, SUB);
 	}
 }
 
@@ -699,9 +718,9 @@ void term(void) {
 		advance();
 		factor();
 		if (mulop == multsym)
-			emit(OPR, 0, MUL);
+			EMIT(OPR, 0, MUL);
 		else 
-			emit(OPR, 0, DIV);
+			EMIT(OPR, 0, DIV);
 	}
 }
 
@@ -713,15 +732,15 @@ void factor(void) {
 			fr = find_symbol(t.text);
 
 			if (symbol_table[fr].kind == var)
-				emit(LOD, level - symbol_table[fr].level, symbol_table[fr].addr);
+				EMIT(LOD, level - symbol_table[fr].level, symbol_table[fr].addr);
 			else if (symbol_table[fr].kind == constant)
-				emit(LIT, 0, symbol_table[fr].val);
+				EMIT(LIT, 0, symbol_table[fr].val);
 			else
-				error(0); // TODO 14?
-			break;
+				ERROR(14); // TODO 14?
 			advance();
+			break;
 		case numbersym:
-			emit(LIT, 0, atoi(t.text));
+			EMIT(LIT, 0, atoi(t.text));
 			advance();
 			break;
 		// if if is a parenthesis advance and call expression
@@ -729,11 +748,11 @@ void factor(void) {
 			advance();
 			expression();
 			if (t_type != rparentsym)
-				error(22);
+				ERROR(22);
 			advance();
 			break;
 		default:
-			error(23);
+			ERROR(23);
 	}
 }
 
