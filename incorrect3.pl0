@@ -1,0 +1,3 @@
+const x := 15;
+var y;
+y := x + 2;
