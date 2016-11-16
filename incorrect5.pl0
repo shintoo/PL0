@@ -1,5 +1,5 @@
-var x, y;
-z;
+var x, 13;
+
 begin
-	x := z;
+	x := 0;
 end.

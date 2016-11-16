@@ -1,4 +1,4 @@
 Collaborations:
-Preliminary work done by all three
-Bug fixing worked on by all three, but mostly Sean
-Comments by all three
+Recursive descent parser by Sean and Satya
+Code generation and debugging of parser by Brody
+Tests created and ran by all three

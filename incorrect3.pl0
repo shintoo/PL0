@@ -1,3 +1,6 @@
 const x := 15;
 var y;
-y := x + 2;
+
+begin
+	y := x + 2;
+end.

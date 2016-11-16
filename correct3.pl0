@@ -1,0 +1,14 @@
+var x, top;
+
+begin
+	top := 10;
+
+	while top > 1 do begin
+		x := top;
+		while x > 0 do begin
+			write x;
+			x := x - 1;
+		end;
+		top := top - 1;
+	end;
+end.

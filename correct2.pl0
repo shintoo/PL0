@@ -1,0 +1,14 @@
+var x, y;
+
+begin
+	x := 5;
+	y := 52;
+
+	write y;
+	write x;
+
+	while y >= x do
+		y := y - x;
+	
+	write y;
+end.

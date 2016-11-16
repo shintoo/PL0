@@ -1,2 +1,4 @@
-var x = 3;
-x := 4;
+var x;
+begin
+	x = 4;
+end.

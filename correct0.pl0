@@ -1,0 +1,17 @@
+var x, y, z;
+
+begin
+	x := 5;
+	y := 8;
+	z := 1;
+
+	write x;
+	write y;
+
+	while y > 0 do begin
+		z := z * x;
+		y := y - 1;
+	end;
+
+	write z;
+end.

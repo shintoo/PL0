@@ -1,0 +1,36 @@
+const N = 14;
+var left, right, toggle, n, i, done;
+
+
+begin
+	right := 1;
+	left := 0;
+	toggle := 0;
+	i := 0;
+
+
+
+	while i < N do begin
+		done := 0;
+		if toggle = 0 then begin
+			right := left + right;
+			toggle := 1;
+			done := 1;
+		end;
+
+		if toggle = 1 then begin
+			if done = 0 then begin
+				left := left + right;
+				toggle := 0;
+			end;
+		end;
+
+		i := i + 1;
+	end;
+
+	if toggle = 0 then
+		write left;
+	if toggle = 1 then
+		write right;
+
+end.
