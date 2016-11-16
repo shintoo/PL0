@@ -382,7 +382,7 @@ void block(void) {
 
 			advance(); /* get semivolon or comma */
 
-			add_to_symbol_table(constant, label, value, level, symbol_count + 4); // TODO what address is this supposed to be??
+			add_to_symbol_table(constant, label, value, level, symbol_count + 4);
 			// create constant variable using given
 			// ident as name, number as value, L and M in symbol table
 			space++;
@@ -398,7 +398,7 @@ void block(void) {
 			advance(); /* get ident */
 			if (t_type != identsym)
 				error(4);	
-			add_to_symbol_table(var, t.text, 0, level, symbol_count + 4); // TODO not 0 lmbo
+			add_to_symbol_table(var, t.text, 0, level, symbol_count + 4);
 			advance(); /* semicolon or comma */
 			// create variable using given ident as name, L and M
 			// in the symbol table
@@ -430,7 +430,7 @@ void block(void) {
 			error(17);
 			advance();
 
-		add_to_symbol_table(proc, label, 0, level, symbol_count + 4); // TODO lmbo
+		add_to_symbol_table(proc, label, 0, level, symbol_count + 4);
 		// make procedure in symbol table using
 		// ident as name, L and M in symbol table
 	}
@@ -443,10 +443,6 @@ void statement(void) {
 		// if it is an identifier
 		case identsym:
 			fr = find_symbol(t.text);
-			if (fr != -1) { // TODO 
-				/* error not found in symbol table lmbo */
-			}
-
 			advance();
 			// must be becomessym
 			if (t_type != becomessym) {
@@ -460,11 +456,10 @@ void statement(void) {
 			advance();
 			expression();
 
-			emit(STO, 0, symbol_table[fr].addr); // TODO
+			emit(STO, 0, symbol_table[fr].addr);
 			break;
 		// if it is a callsym
 		case callsym:
-			// advance and make sure it is an identsym
 			advance();
 			if (t_type != identsym)
 				error(14);
@@ -540,7 +535,7 @@ void statement(void) {
 			fr = find_symbol(t.text);
 
 			if (symbol_table[fr].kind != var && symbol_table[fr].kind != constant) {
-				error(26); // TODO
+				error(26);
 			}
 
 			if (symbol_table[fr].kind == var)
@@ -588,10 +583,10 @@ void condition(void) {
 			error(20);
 		r = relation_op();
 		if (!r)
-			error(13); // TODO 13?
+			error(28); 
 		advance();
 		expression();
-		emit(OPR, 0, r); // ???????????? TODO TODO TODO FIXME FIXME FIXME FIXME FIXME
+		emit(OPR, 0, r); 
 	}
 }
 
@@ -648,7 +643,7 @@ void factor(void) {
 			else if (symbol_table[fr].kind == constant)
 				emit(LIT, 0, symbol_table[fr].val);
 			else
-				error(14); // TODO 14?
+				error(21);
 			advance();
 			break;
 		case numbersym:
@@ -687,6 +682,8 @@ int main(int argc, char **argv) {
 	program();	
 
 	dump(output);
+
+	puts("No errors, program is syntactically correct.");
 
 	fclose(output);
 	fclose(source);
