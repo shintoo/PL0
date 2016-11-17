@@ -107,6 +107,7 @@ int isIdent(char *text);
 void advance() {
 	t = getNextToken(source);
 	t_type = findTokenType(&t);
+	printf("%s\n", t.text);
 }
 
 //moves to the next token, takes it, and returns it
@@ -428,9 +429,9 @@ void block(void) {
 		block(); /* process block */
 		if (t_type != semicolonsym)
 			error(17);
-			advance();
+		advance();
 
-		add_to_symbol_table(proc, label, 0, level, symbol_count + 4);
+		add_to_symbol_table(proc, label, cx, level, symbol_count + 4);
 		// make procedure in symbol table using
 		// ident as name, L and M in symbol table
 	}
@@ -439,6 +440,7 @@ void block(void) {
 
 void statement(void) {
 	int ctemp, cx1, cx2, fr;
+
 	switch (t_type) {
 		// if it is an identifier
 		case identsym:
@@ -463,6 +465,12 @@ void statement(void) {
 			advance();
 			if (t_type != identsym)
 				error(14);
+			fr = find_symbol(t.text);
+			if (symbol_table[fr].kind != proc)
+				error(15);
+
+//			emit(CAL, level, symbol_table[fr].addr);
+
 			advance();
 			break;
 		// if it is a beginsym
@@ -493,9 +501,21 @@ void statement(void) {
 			ctemp = cx;
 			
 			emit(JPC, 0, 0);
-
 			statement();
+			
+			printf("%d: %s\n", __LINE__, t.text);
 			code[ctemp].m = cx;
+
+			if (t_type == elsesym) {
+				code[ctemp].m++;
+				ctemp = cx;
+				emit(JMP, 0, 0);
+
+				advance();
+				statement();
+				code[ctemp].m = cx;
+			}
+
 			break;
 
 		case whilesym:		

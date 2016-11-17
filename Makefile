@@ -1,2 +1,2 @@
 thing:
-	gcc final.c -std=c99 -o  compile
+	gcc compile.c -std=c99 -o  compile

@@ -1,0 +1,29 @@
+var left, right, toggle, n, i;
+
+
+begin
+	right := 1;
+	left := 0;
+	toggle := 0;
+	i := 0;
+
+	read n;
+
+	while i < n do begin
+		if toggle = 0 then begin
+			right := left + right;
+			toggle := 1
+		end
+		else if toggle = 1 then begin
+			left := left + right;
+			toggle := 0
+		end;
+		i := i + 1;
+	end;
+
+	if toggle = 0 then
+		write left
+	else
+		write right;
+
+end.
