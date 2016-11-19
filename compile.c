@@ -48,6 +48,9 @@ symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 unsigned symbol_count[MAX_SYMBOL_TABLE_SIZE] = {0};
 unsigned symbol_count_total = 0;
 
+int proc_start[MAX_SYMBOL_TABLE_SIZE];
+int proc_level[MAX_SYMBOL_TABLE_SIZE];
+
 FILE *source;
 
 typedef enum token {
@@ -355,7 +358,6 @@ void add_to_symbol_table(int kind, char *name, int val, int level, int addr) {
 // PARSER ------------
 
 void program(void) {
-	emit(JMP, 0, 0);
 	// advance and call block
 	advance();
 	block();
@@ -368,7 +370,8 @@ void program(void) {
 
 void block(void) {
 	int space = 0;
-
+	int ctemp = cx;
+	emit(JMP, 0, 0);
 	if (t_type == constsym) { /* make a constant */
 		do {
 			int value;
@@ -431,10 +434,10 @@ void block(void) {
 		if (t_type != semicolonsym)
 			error(17);
 
-		add_to_symbol_table(proc, label, cx-1, level, cx);
+		add_to_symbol_table(proc, label, cx, level, cx);
 		advance(); /* move to start of block */
-		level++; //sat
-		emit(JMP, 0, cx+1);
+		level++; //sat	
+		
 		block(); /* process block */
 		emit(OPR, 0, RET);
 		level--;
@@ -446,15 +449,14 @@ void block(void) {
 		// make procedure in symbol table using
 		// ident as name, L and M in symbol table
 	}
-	
+
+	code[ctemp].m = cx;
 	emit(INC, 0, space + 4);
 	statement();
 }
 
 void statement(void) {
 	int ctemp, cx1, cx2, fr;
-	if (level == 0 && code[0].m == 0)
-		code[0].m = cx-1;
 	
 	switch (t_type) {
 		// if it is an identifier
