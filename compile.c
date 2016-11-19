@@ -45,7 +45,8 @@ int cx = 0;
 
 FILE *output;
 symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
-unsigned symbol_count = 0;
+unsigned symbol_count[MAX_SYMBOL_TABLE_SIZE] = {0};
+unsigned symbol_count_total = 0;
 
 FILE *source;
 
@@ -84,7 +85,7 @@ typedef struct _token {
 token t;
 token_type t_type;
 
-int level;
+int level = 0;
 
 /* moves to the nextToken and then takes it, also setting its type */
 token getNextToken(FILE *fp);
@@ -330,26 +331,31 @@ void dump(FILE *out) {
 }
 
 int find_symbol(char *ident) {
-	for (int i = 0; i < symbol_count; i++)
-		if (!strcmp(symbol_table[i].name, ident))
+	for (int i = 0; i < symbol_count_total; i++) {
+		printf(">\"%s\" %d\n", symbol_table[i].name, symbol_table[i].level);
+		if (!strcmp(symbol_table[i].name, ident) && symbol_table[i].level <= level)
 			return i;
+	}
 
 	error(11);
 }
 
 void add_to_symbol_table(int kind, char *name, int val, int level, int addr) {
-	symbol_table[symbol_count].kind = kind;
-	strncpy(symbol_table[symbol_count].name, name, 12);
-	symbol_table[symbol_count].val = val;
-	symbol_table[symbol_count].level = level;
-	symbol_table[symbol_count].addr = addr;
+	printf(">adding \"%s\"\n", name);
+	symbol_table[symbol_count_total].kind = kind;
+	strncpy(symbol_table[symbol_count_total].name, name, 12);
+	symbol_table[symbol_count_total].val = val;
+	symbol_table[symbol_count_total].level = level;
+	symbol_table[symbol_count_total].addr = addr;
 
-	symbol_count++;
+	symbol_count[level]++;
+	symbol_count_total++;
 }
 
 // PARSER ------------
 
 void program(void) {
+	emit(JMP, 0, 0);
 	// advance and call block
 	advance();
 	block();
@@ -361,7 +367,6 @@ void program(void) {
 }
 
 void block(void) {
-	level++;
 	int space = 0;
 
 	if (t_type == constsym) { /* make a constant */
@@ -383,7 +388,7 @@ void block(void) {
 
 			advance(); /* get semivolon or comma */
 
-			add_to_symbol_table(constant, label, value, level, symbol_count + 4);
+			add_to_symbol_table(constant, label, value, level, symbol_count[level] + 4);
 			// create constant variable using given
 			// ident as name, number as value, L and M in symbol table
 			space++;
@@ -399,7 +404,7 @@ void block(void) {
 			advance(); /* get ident */
 			if (t_type != identsym)
 				error(4);	
-			add_to_symbol_table(var, t.text, 0, level, symbol_count + 4);
+			add_to_symbol_table(var, t.text, 0, level, symbol_count[level] + 4);
 			advance(); /* semicolon or comma */
 			// create variable using given ident as name, L and M
 			// in the symbol table
@@ -413,7 +418,7 @@ void block(void) {
 		advance();
 	}
 
-	emit(INC, 0, space + 4);
+	
 
 	while (t_type == procsym) { /* make a procedure */
 		char label[12];
@@ -425,22 +430,32 @@ void block(void) {
 		advance(); /* get semicolon */
 		if (t_type != semicolonsym)
 			error(17);
+
+		add_to_symbol_table(proc, label, cx-1, level, cx);
 		advance(); /* move to start of block */
+		level++; //sat
+		emit(JMP, 0, cx+1);
 		block(); /* process block */
+		emit(OPR, 0, RET);
+		level--;
 		if (t_type != semicolonsym)
 			error(17);
 		advance();
 
-		add_to_symbol_table(proc, label, cx, level, symbol_count + 4);
+
 		// make procedure in symbol table using
 		// ident as name, L and M in symbol table
 	}
+	
+	emit(INC, 0, space + 4);
 	statement();
 }
 
 void statement(void) {
 	int ctemp, cx1, cx2, fr;
-
+	if (level == 0 && code[0].m == 0)
+		code[0].m = cx-1;
+	
 	switch (t_type) {
 		// if it is an identifier
 		case identsym:
@@ -458,7 +473,7 @@ void statement(void) {
 			advance();
 			expression();
 
-			emit(STO, 0, symbol_table[fr].addr);
+			emit(STO, level - symbol_table[fr].level, symbol_table[fr].addr);
 			break;
 		// if it is a callsym
 		case callsym:
@@ -469,7 +484,7 @@ void statement(void) {
 			if (symbol_table[fr].kind != proc)
 				error(15);
 
-//			emit(CAL, level, symbol_table[fr].addr);
+			emit(CAL, level, symbol_table[fr].addr);
 
 			advance();
 			break;
