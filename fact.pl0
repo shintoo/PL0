@@ -9,7 +9,8 @@ procedure fact;
 		f := f * ans1;
 	end;
 begin
-	n := 3;
-	call fact;
+	read n;
+	if n < 8 then
+		call fact;
 	write f;
 end.

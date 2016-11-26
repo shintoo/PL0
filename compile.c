@@ -2,6 +2,9 @@
    Sean Rapp
    Brody "Broderson" Nissen */
 
+// Parser on line ~350
+// Apologies for the lack of organization.
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -111,7 +114,6 @@ int isIdent(char *text);
 void advance() {
 	t = getNextToken(source);
 	t_type = findTokenType(&t);
-	printf("%s\n", t.text);
 }
 
 //moves to the next token, takes it, and returns it
@@ -335,7 +337,6 @@ void dump(FILE *out) {
 
 int find_symbol(char *ident) {
 	for (int i = 0; i < symbol_count_total; i++) {
-		printf(">\"%s\" %d\n", symbol_table[i].name, symbol_table[i].level);
 		if (!strcmp(symbol_table[i].name, ident) && symbol_table[i].level <= level)
 			return i;
 	}
@@ -344,7 +345,6 @@ int find_symbol(char *ident) {
 }
 
 void add_to_symbol_table(int kind, char *name, int val, int level, int addr) {
-	printf(">adding \"%s\"\n", name);
 	symbol_table[symbol_count_total].kind = kind;
 	strncpy(symbol_table[symbol_count_total].name, name, 12);
 	symbol_table[symbol_count_total].val = val;
@@ -520,7 +520,6 @@ void statement(void) {
 			emit(JPC, 0, 0);
 			statement();
 			
-			printf("%d: %s\n", __LINE__, t.text);
 			code[ctemp].m = cx;
 
 			if (t_type == elsesym) {
