@@ -1,4 +1,0 @@
-Collaborations:
-Recursive descent parser by Sean and Satya
-Code generation and debugging of parser by Brody
-Tests created and ran by all three
