@@ -1,2 +1,2 @@
 thing:
-	gcc main.c parser.c lexer.c error.c -o compile -std=c99
+	gcc src/main.c src/parser.c src/lexer.c src/error.c -o compile -std=c99
